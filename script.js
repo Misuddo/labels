@@ -70,3 +70,60 @@ video.addEventListener("play", async () => {
     });
   }, 100);
 });
+
+async function getGeolocation() {
+  return new Promise((resolve, reject) => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => resolve(position.coords),
+        (error) => reject(error)
+      );
+    } else {
+      reject("Geolocation is not supported.");
+    }
+  });
+}
+
+function captureImage(video) {
+  const canvas = document.createElement("canvas");
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL("image/png");
+}
+
+async function logAttendance(name, type, video) {
+  const geolocation = await getGeolocation();
+  const imageUrl = captureImage(video);
+
+  const data = {
+    name: name,
+    type: type, // 'checkin' or 'checkout'
+    latitude: geolocation.latitude,
+    longitude: geolocation.longitude,
+    imageUrl: imageUrl,
+  };
+
+  await fetch("https://script.google.com/macros/s/AKfycbykWotbzBgFzfw9A4tdkFnN7GlSKbH-37ET_5MnsWKHRj-ZzYM01rhWspIfDfIi3Y76/exec", {
+    method: "POST",
+    body: JSON.stringify(data),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+}
+
+results.forEach((result, i) => {
+  const box = resizedDetections[i].detection.box;
+  const drawBox = new faceapi.draw.DrawBox(box, {
+    label: result.toString(),
+  });
+  drawBox.draw(canvas);
+
+  // Log attendance if face is recognized
+  if (result.label !== "unknown") {
+    logAttendance(result.label, "checkin", video); // Replace "checkin" with logic to toggle
+  }
+});
+
