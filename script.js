@@ -1,4 +1,4 @@
-const video = document.getElementById("video");
+/*const video = document.getElementById("video");
 
 Promise.all([
   faceapi.nets.ssdMobilenetv1.loadFromUri("/models"),
@@ -126,4 +126,4 @@ results.forEach((result, i) => {
     logAttendance(result.label, "checkin", video); // Replace "checkin" with logic to toggle
   }
 });
-
+*/
